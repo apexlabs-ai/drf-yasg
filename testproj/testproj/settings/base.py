@@ -140,7 +140,12 @@ SWAGGER_SETTINGS = {
         'clientId': OAUTH2_CLIENT_ID,
         'clientSecret': OAUTH2_CLIENT_SECRET,
         'appName': OAUTH2_APP_NAME,
-    }
+    },
+    "DEFAULT_PAGINATOR_INSPECTORS": [
+        'testproj.inspectors.UnknownPaginatorInspector',
+        'drf_yasg.inspectors.DjangoRestResponsePagination',
+        'drf_yasg.inspectors.CoreAPICompatInspector',
+    ]
 }
 
 REDOC_SETTINGS = {
@@ -188,16 +193,6 @@ LOGGING = {
             'propagate': False,
         },
         'django': {
-            'handlers': ['console_log'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-        'django.db.backends': {
-            'handlers': ['console_log'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django.template': {
             'handlers': ['console_log'],
             'level': 'INFO',
             'propagate': False,

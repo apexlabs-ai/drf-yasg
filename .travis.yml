@@ -1,16 +1,14 @@
 language: python
 python:
-  - '2.7'
-  - '3.4'
-  - '3.5'
   - '3.6'
   - '3.7'
+  - '3.8'
 
 dist: xenial
 
 cache: pip
 
-jobs:
+matrix:
   include:
     - python: '3.6'
       env: TOXENV=docs
@@ -59,11 +57,6 @@ after_success:
       coverage report
       codecov
     fi
-
-branches:
-  only:
-    - master
-    - /^v?\d+\.\d+(\.\d+)?(-?\S+)?$/
 
 stages:
   - test

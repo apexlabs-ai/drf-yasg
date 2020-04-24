@@ -2,6 +2,7 @@ import datetime
 import inspect
 import logging
 import operator
+import sys
 import uuid
 from collections import OrderedDict
 from decimal import Decimal
@@ -492,6 +493,10 @@ hinting_type_info = [
     (datetime.date, (openapi.TYPE_STRING, openapi.FORMAT_DATE)),
 ]
 
+if sys.version_info < (3, 0):
+    # noinspection PyUnresolvedReferences
+    hinting_type_info.append((unicode, (openapi.TYPE_STRING, None)))  # noqa: F821
+
 if typing:
     def inspect_collection_hint_class(hint_class):
         args = hint_class.__args__
@@ -530,11 +535,14 @@ def get_basic_type_info_from_hint(hint_class):
     :rtype: OrderedDict
     """
     union_types = _get_union_types(hint_class)
+
     if typing and union_types:
         # Optional is implemented as Union[T, None]
         if len(union_types) == 2 and isinstance(None, union_types[1]):
             result = get_basic_type_info_from_hint(union_types[0])
-            result['x-nullable'] = True
+            if result:
+                result['x-nullable'] = True
+
             return result
 
         return None
@@ -653,7 +661,11 @@ class ChoiceFieldInspector(FieldInspector):
             serializer = get_parent_serializer(field)
             if isinstance(serializer, serializers.ModelSerializer):
                 model = getattr(getattr(serializer, 'Meta'), 'model')
-                model_field = get_model_field(model, field.source)
+                # Use the parent source for nested fields
+                model_field = get_model_field(model, field.source or field.parent.source)
+                # If the field has a base_field its type must be used
+                if getattr(model_field, "base_field", None):
+                    model_field = model_field.base_field
                 if model_field:
                     model_type = get_basic_type_info(model_field)
                     if model_type:
@@ -738,11 +750,23 @@ class HiddenFieldInspector(FieldInspector):
         return NotHandled
 
 
+class JSONFieldInspector(FieldInspector):
+    """Provides conversion for ``JSONField``."""
+
+    def field_to_swagger_object(self, field, swagger_object_type, use_references, **kwargs):
+        SwaggerType, ChildSwaggerType = self._get_partial_types(field, swagger_object_type, use_references, **kwargs)
+
+        if isinstance(field, serializers.JSONField) and swagger_object_type == openapi.Schema:
+            return SwaggerType(type=openapi.TYPE_OBJECT)
+
+        return NotHandled
+
+
 class StringDefaultFieldInspector(FieldInspector):
     """For otherwise unhandled fields, return them as plain :data:`.TYPE_STRING` objects."""
 
     def field_to_swagger_object(self, field, swagger_object_type, use_references, **kwargs):  # pragma: no cover
-        # TODO unhandled fields: TimeField JSONField
+        # TODO unhandled fields: TimeField
         SwaggerType, ChildSwaggerType = self._get_partial_types(field, swagger_object_type, use_references, **kwargs)
         return SwaggerType(type=openapi.TYPE_STRING)
 

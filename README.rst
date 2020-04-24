@@ -13,9 +13,9 @@ Generate **real** Swagger/OpenAPI 2.0 specifications from a Django Rest Framewor
 
 Compatible with
 
-- **Django Rest Framework**: 3.7.7, 3.8, 3.9
-- **Django**: 1.11, 2.0, 2.1, 2.2
-- **Python**: 2.7, 3.4, 3.5, 3.6, 3.7
+- **Django Rest Framework**: 3.8, 3.9, 3.10, 3.11
+- **Django**: 1.11, 2.2, 3.0
+- **Python**: 2.7, 3.6, 3.7, 3.8
 
 Only the latest patch version of each ``major.minor`` series of Python, Django and Django REST Framework is supported.
 
@@ -235,7 +235,7 @@ Offline
 ^^^^^^^
 
 If your schema is not accessible from the internet, you can run a local copy of
-`swagger-validator <https://hub.docker.com/r/swaggerapi/swagger-validator/>`_ and set the `VALIDATOR_URL` accordingly:
+`swagger-validator <https://hub.docker.com/r/swaggerapi/swagger-validator/>`_ and set the ``VALIDATOR_URL`` accordingly:
 
 .. code:: python
 

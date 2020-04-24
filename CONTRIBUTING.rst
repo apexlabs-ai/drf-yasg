@@ -6,7 +6,7 @@
 Contributing
 ############
 
-Contributions are always welcome and appreciated! Here are some ways you can contribut.
+Contributions are always welcome and appreciated! Here are some ways you can contribute.
 
 ******
 Issues
@@ -57,7 +57,7 @@ You want to contribute some code? Great! Here are a few steps to get you started
 
    .. code:: console
 
-      (venv) $ python testproj/manage.py generate_swagger ../tests/reference.yaml --overwrite --user admin --url http://test.local:8002/
+      (venv) $ python testproj/manage.py generate_swagger tests/reference.yaml --overwrite --user admin --url http://test.local:8002/
 
    After checking the git diff to verify that no unexpected changes appeared, you should commit the new
    ``reference.yaml`` together with your changes.
@@ -95,7 +95,7 @@ You want to contribute some code? Great! Here are a few steps to get you started
 
 #. **Your code must pass all the required travis jobs before it is merged**
 
-   As of now, this consists of running on Python 2.7, 3.4, 3.5 and 3.6, and building the docs succesfully.
+   As of now, this consists of running on Python 2.7, 3.5, 3.6 and 3.7, and building the docs succesfully.
 
 ******************
 Maintainer's notes

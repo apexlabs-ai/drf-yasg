@@ -85,6 +85,7 @@ to this list.
 :class:`'drf_yasg.inspectors.ChoiceFieldInspector' <.inspectors.ChoiceFieldInspector>`, |br| \
 :class:`'drf_yasg.inspectors.FileFieldInspector' <.inspectors.FileFieldInspector>`, |br| \
 :class:`'drf_yasg.inspectors.DictFieldInspector' <.inspectors.DictFieldInspector>`, |br| \
+:class:`'drf_yasg.inspectors.JSONFieldInspector' <.inspectors.JSONFieldInspector>`, |br| \
 :class:`'drf_yasg.inspectors.HiddenFieldInspector' <.inspectors.HiddenFieldInspector>`, |br| \
 :class:`'drf_yasg.inspectors.RecursiveFieldInspector' <.inspectors.RecursiveFieldInspector>`, |br| \
 :class:`'drf_yasg.inspectors.SerializerMethodFieldInspector' <.inspectors.SerializerMethodFieldInspector>`, |br| \
@@ -340,7 +341,7 @@ values for Parameters.
 OAUTH2_REDIRECT_URL
 -------------------
 
-Used when OAuth2 authenitcation of API requests via swagger-ui is desired. If ``None`` is passed, the
+Used when OAuth2 authentication of API requests via swagger-ui is desired. If ``None`` is passed, the
 ``oauth2RedirectUrl`` parameter will be set to ``{% static 'drf-yasg/swagger-ui-dist/oauth2-redirect.html' %}``. This
 is the default `https://github.com/swagger-api/swagger-ui/blob/master/dist/oauth2-redirect.html <oauth2-redirect>`_
 file provided by ``swagger-ui``.
@@ -351,7 +352,7 @@ file provided by ``swagger-ui``.
 OAUTH2_CONFIG
 -------------
 
-Used when OAuth2 authenitcation of API requests via swagger-ui is desired. Provides OAuth2 configuration parameters
+Used when OAuth2 authentication of API requests via swagger-ui is desired. Provides OAuth2 configuration parameters
 to the ``SwaggerUIBundle#initOAuth`` method, and must be a dictionary. See
 `OAuth2 configuration <https://github.com/swagger-api/swagger-ui/blob/master/docs/usage/oauth2.md>`_.
 
@@ -454,7 +455,7 @@ FETCH_SCHEMA_WITH_QUERY
 
 Fetch the OpenAPI document using the query parameters passed to the ReDoc page request.
 
-**Default**: :python:`'True` |br|
+**Default**: :python:`True` |br|
 *Maps to parameter*: -
 
 

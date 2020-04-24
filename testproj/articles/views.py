@@ -1,10 +1,8 @@
 import datetime
-import functools
 
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
-# noinspection PyDeprecation
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.parsers import FileUploadParser, MultiPartParser
@@ -93,17 +91,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     swagger_schema = NoTitleAutoSchema
 
-    try:
-        from rest_framework.decorators import action
-        list_route = functools.partial(action, detail=False)
-        detail_route = functools.partial(action, detail=True)
-    except ImportError:
-        # TODO: remove when dropping support for DRF 3.7
-        action = None
-        from rest_framework.decorators import list_route, detail_route
+    from rest_framework.decorators import action
 
     @swagger_auto_schema(auto_schema=NoPagingAutoSchema, filter_inspectors=[DjangoFilterDescriptionInspector])
-    @list_route(methods=['get'])
+    @action(detail=False, methods=['get'])
     def today(self, request):
         today_min = datetime.datetime.combine(datetime.date.today(), datetime.time.min)
         today_max = datetime.datetime.combine(datetime.date.today(), datetime.time.max)
@@ -118,7 +109,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         type=openapi.TYPE_INTEGER,
         description="this should not crash (form parameter on DELETE method)"
     )])
-    @detail_route(methods=['get', 'post', 'delete'], parser_classes=(MultiPartParser, FileUploadParser))
+    @action(detail=True, methods=['get', 'post', 'delete'], parser_classes=(MultiPartParser, FileUploadParser))
     def image(self, request, slug=None):
         """
         image method docstring

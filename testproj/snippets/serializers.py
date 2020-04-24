@@ -1,10 +1,16 @@
 from decimal import Decimal
 
+import rest_framework
 from django.contrib.auth import get_user_model
+from packaging.version import Version
 from rest_framework import serializers
-from rest_framework.compat import MaxLengthValidator, MinValueValidator
 
 from snippets.models import LANGUAGE_CHOICES, STYLE_CHOICES, Snippet, SnippetViewer
+
+if Version(rest_framework.__version__) < Version('3.10'):
+    from rest_framework.compat import MaxLengthValidator, MinValueValidator
+else:
+    from django.core.validators import MaxLengthValidator, MinValueValidator
 
 
 class LanguageSerializer(serializers.Serializer):
@@ -17,7 +23,7 @@ class LanguageSerializer(serializers.Serializer):
 
 
 class ExampleProjectSerializer(serializers.Serializer):
-    project_name = serializers.CharField(help_text='Name of the project')
+    project_name = serializers.CharField(label='project name custom title', help_text='Name of the project')
     github_repo = serializers.CharField(required=True, help_text='Github repository of the project')
 
     class Meta:
@@ -69,7 +75,7 @@ class SnippetSerializer(serializers.Serializer):
     tags = serializers.ListField(child=serializers.CharField(min_length=2), min_length=3, max_length=15)
     linenos = serializers.BooleanField(required=False)
     language = LanguageSerializer(help_text="Sample help text for language")
-    styles = serializers.MultipleChoiceField(choices=STYLE_CHOICES, default=['friendly'])
+    styles = serializers.MultipleChoiceField(choices=STYLE_CHOICES, default=['solarized-dark'])
     lines = serializers.ListField(child=serializers.IntegerField(), allow_empty=True, allow_null=True, required=False)
     example_projects = serializers.ListSerializer(child=ExampleProjectSerializer(), read_only=True,
                                                   validators=[MaxLengthValidator(100)])

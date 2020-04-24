@@ -1,11 +1,12 @@
 import inspect
 import logging
 import sys
+import textwrap
 from collections import OrderedDict
 from decimal import Decimal
 
 from django.db import models
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from rest_framework import serializers, status
 from rest_framework.mixins import DestroyModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.parsers import FileUploadParser
@@ -95,8 +96,8 @@ def swagger_auto_schema(method=None, methods=None, auto_schema=unset, request_bo
         * a ``Serializer`` class or instance will be converted into a :class:`.Schema` and treated as above
         * a :class:`.Response` object will be used as-is; however if its ``schema`` attribute is a ``Serializer``,
           it will automatically be converted into a :class:`.Schema`
-    :type responses: dict[str,(drf_yasg.openapi.Schema or drf_yasg.openapi.SchemaRef or drf_yasg.openapi.Response or
-        str or rest_framework.serializers.Serializer)]
+    :type responses: dict[int or str, (drf_yasg.openapi.Schema or drf_yasg.openapi.SchemaRef or
+        drf_yasg.openapi.Response or str or rest_framework.serializers.Serializer)]
 
     :param list[type[drf_yasg.inspectors.FieldInspector]] field_inspectors: extra serializer and field inspectors; these
         will be tried before :attr:`.ViewInspector.field_inspectors` on the :class:`.inspectors.SwaggerAutoSchema`
@@ -166,7 +167,7 @@ def swagger_auto_schema(method=None, methods=None, auto_schema=unset, request_bo
 
             if len(available_http_methods) > 1:
                 assert _methods, \
-                    "on multi-method api_view, action, detail_route or list_route, you must specify " \
+                    "on multi-method api_view or action, you must specify " \
                     "swagger_auto_schema on a per-method basis using one of the `method` or `methods` arguments"
             else:
                 # for a single-method view we assume that single method as the decorator target
@@ -179,8 +180,8 @@ def swagger_auto_schema(method=None, methods=None, auto_schema=unset, request_bo
             view_method._swagger_auto_schema = existing_data
         else:
             assert not _methods, \
-                "the methods argument should only be specified when decorating an action, detail_route or " \
-                "list_route; you should also ensure that you put the swagger_auto_schema decorator " \
+                "the methods argument should only be specified when decorating an action; " \
+                "you should also ensure that you put the swagger_auto_schema decorator " \
                 "AFTER (above) the _route decorator"
             assert not existing_data, "swagger_auto_schema applied twice to method"
             view_method._swagger_auto_schema = data
@@ -215,7 +216,7 @@ def is_list_view(path, method, view):
     :param APIView view: target view
     :rtype: bool
     """
-    # for ViewSets, it could be the default 'list' action, or a list_route
+    # for ViewSets, it could be the default 'list' action, or an @action(detail=False)
     action = getattr(view, 'action', '')
     method = getattr(view, action, None) or method
     detail = getattr(method, 'detail', None)
@@ -374,10 +375,16 @@ def get_consumes(parser_classes):
     parser_classes = [pc for pc in parser_classes if not issubclass(pc, FileUploadParser)]
     media_types = [parser.media_type for parser in parser_classes or []]
     non_form_media_types = [encoding for encoding in media_types if not is_form_media_type(encoding)]
+    # Because swagger Parameter objects don't support complex data types (nested objects, arrays),
+    # we can't use those unless we are sure the view *only* accepts form data
+    # This means that a view won't support file upload in swagger unless it explicitly
+    # sets its parser classes to include only form parsers
     if len(non_form_media_types) == 0:
         return media_types
-    else:
-        return non_form_media_types
+
+    # If the form accepts both form data and another type, like json (which is the default config),
+    # we will render its input as a Schema and thus it file parameters will be read-only
+    return non_form_media_types
 
 
 def get_produces(renderer_classes):
@@ -434,9 +441,12 @@ def force_real_str(s, encoding='utf-8', strings_only=False, errors='strict'):
     Fix for https://github.com/axnsan12/drf-yasg/issues/159
     """
     if s is not None:
-        s = force_text(s, encoding, strings_only, errors)
+        s = force_str(s, encoding, strings_only, errors)
         if type(s) != str:
             s = '' + s
+
+        # Remove common indentation to get the correct Markdown rendering
+        s = textwrap.dedent(s)
 
     return s
 
@@ -473,7 +483,10 @@ def get_field_default(field):
             try:
                 if hasattr(default, 'set_context'):
                     default.set_context(field)
-                default = default()
+                if getattr(default, 'requires_context', False):
+                    default = default(field)
+                else:
+                    default = default()
             except Exception:  # pragma: no cover
                 logger.warning("default for %s is callable but it raised an exception when "
                                "called; 'default' will not be set on schema", field, exc_info=True)
